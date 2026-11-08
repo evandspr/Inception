@@ -1,0 +1,77 @@
+services:
+
+  mariadb:
+    build: requirements/mariadb
+    image: mariadb:inception
+    container_name: mariadb
+    env_file: .env
+    secrets:
+      - db_password
+      - db_root_password
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - inception
+    restart: always
+
+  wordpress:
+    build: requirements/wordpress
+    image: wordpress:inception
+    container_name: wordpress
+    env_file: .env
+    secrets:
+      - db_password
+      - credentials
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception
+    depends_on:
+      - mariadb
+    restart: always
+
+  nginx:
+    build: requirements/nginx
+    image: nginx:inception
+    container_name: nginx
+    env_file: .env
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress_data:/var/www/html:ro
+    networks:
+      - inception
+    depends_on:
+      - wordpress
+    restart: always
+
+# Volumes NOMMES, dont les donnees sont stockees dans /home/edesprez/data
+volumes:
+  mariadb_data:
+    name: mariadb_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH}/mariadb
+  wordpress_data:
+    name: wordpress_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH}/wordpress
+
+networks:
+  inception:
+    name: inception
+    driver: bridge
+
+# Les fichiers de mots de passe, montes dans /run/secrets/<nom> des conteneurs
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  credentials:
+    file: ../secrets/credentials.txt
