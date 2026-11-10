@@ -22,11 +22,11 @@ echo "127.0.0.1 edesprez.42.fr" | sudo tee -a /etc/hosts
 
 ```sh
 mkdir -p secrets
-echo "a_strong_db_password"      > secrets/db_password.txt
-echo "a_strong_root_password"    > secrets/db_root_password.txt
+echo "<your_db_password>"      > secrets/db_password.txt
+echo "<your_root_password>"    > secrets/db_root_password.txt
 cat > secrets/credentials.txt << EOF
-WP_ADMIN_PASSWORD=a_strong_admin_password
-WP_USER_PASSWORD=a_strong_user_password
+WP_ADMIN_PASSWORD=<your_admin_password>
+WP_USER_PASSWORD=<your_user_password>
 EOF
 ```
 

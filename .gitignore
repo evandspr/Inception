@@ -1,0 +1,4 @@
+# Mots de passe : jamais dans git
+secrets/
+.DS_Store
+en.subject.pdf

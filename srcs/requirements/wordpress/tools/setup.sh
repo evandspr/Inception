@@ -42,6 +42,13 @@ if [ ! -f /var/www/html/wp-config.php ]; then
 		"${WP_USER}" "${WP_USER_EMAIL}" \
 		--role=author \
 		--user_pass="${WP_USER_PASSWORD}"
+
+	# L'URL du site suit l'adresse utilisee par le navigateur (port compris) :
+	# si on change le port de nginx (ex: 8443), le site reste accessible
+	wp config set WP_HOME --raw --allow-root \
+		"isset(\$_SERVER['HTTP_HOST']) ? 'https://' . \$_SERVER['HTTP_HOST'] : 'https://${DOMAIN_NAME}'"
+	wp config set WP_SITEURL --raw --allow-root \
+		"isset(\$_SERVER['HTTP_HOST']) ? 'https://' . \$_SERVER['HTTP_HOST'] : 'https://${DOMAIN_NAME}'"
 fi
 
 chown -R www-data:www-data /var/www/html

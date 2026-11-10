@@ -18,31 +18,17 @@ fi
 if [ ! -d "/var/lib/mysql/${MYSQL_DATABASE}" ]; then
 	echo "[mariadb] Creation de la base et de l'utilisateur..."
 
-	# Serveur temporaire, sans reseau, juste pour executer le SQL
-	mariadbd --user=mysql --skip-networking &
-
-	# On attend qu'il reponde (30 essais max : ce n'est pas une boucle infinie)
-	i=0
-	until mariadb-admin ping --silent; do
-		i=$((i + 1))
-		if [ "$i" -ge 30 ]; then
-			echo "[mariadb] Le serveur temporaire ne demarre pas" >&2
-			exit 1
-		fi
-		sleep 1
-	done
-
-	mariadb -u root <<EOF
+	# --bootstrap : execute le SQL puis s'arrete, sans demarrer de serveur
+	# (pas de reseau, pas de processus en arriere-plan)
+	mariadbd --user=mysql --bootstrap <<EOF
+USE mysql;
+FLUSH PRIVILEGES;
 CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;
 CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${DB_PASSWORD}';
 GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';
-ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASSWORD}';
+ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('${DB_ROOT_PASSWORD}');
 FLUSH PRIVILEGES;
-SHUTDOWN;
 EOF
-
-	# On attend que le serveur temporaire soit bien arrete
-	wait
 fi
 
 echo "[mariadb] Demarrage."
